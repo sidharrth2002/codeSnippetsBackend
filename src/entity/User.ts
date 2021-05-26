@@ -29,4 +29,7 @@ export class User extends BaseEntity {
   @Field(() => [Snippet])
   @OneToMany(() => Snippet, snippet => snippet.id)
   snippets: Snippet[];
+
+  @Field(() => String)
+  accessToken: string;
 }
