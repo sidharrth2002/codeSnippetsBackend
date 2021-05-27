@@ -5,7 +5,7 @@ import { Snippet } from "./Snippet";
 
 @Entity()
 @ObjectType()
-export class User extends BaseEntity {
+export class Users extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: number;
@@ -27,7 +27,7 @@ export class User extends BaseEntity {
   comments: Comment[];
 
   @Field(() => [Snippet])
-  @OneToMany(() => Snippet, snippet => snippet.id)
+  @OneToMany(() => Snippet, snippet => snippet.user, {cascade: true})
   snippets: Snippet[];
 
   @Field(() => String)

@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType } from "type-graphql";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, BaseEntity } from "typeorm";
 import { Snippet } from "./Snippet";
-import { User } from './User';
+import { Users } from './User';
 
 @Entity()
 @ObjectType()
@@ -11,13 +11,12 @@ export class Comment extends BaseEntity {
 
   @Field(() => ID)
   @Column()
-  @ManyToOne(() => User, user => user.id)
+  @ManyToOne(() => Users, user => user.id)
   user: number;
 
   @Field(() => ID)
-  @Column()
-  @ManyToOne(() => Snippet, snippet => snippet.id)
-  snippet: number;
+  @ManyToOne(() => Snippet, snippet => snippet.comments)
+  snippet: Snippet;
 
   @Field(() => String)
   @Column()

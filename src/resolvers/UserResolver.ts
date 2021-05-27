@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { User } from "../entity/User";
+import { Users } from "../entity/User";
 import { Resolver, Query, Mutation, Arg, InputType, Field } from "type-graphql";
 
 @InputType()
@@ -16,24 +16,24 @@ class CreateUserInput {
 
 @Resolver()
 export class UserResolver {
-    @Query(() => [User])
+    @Query(() => [Users])
     users() {
-        return User.find()
+        return Users.find()
     }
 
     //get snippet by id
-    @Query(() => User)
+    @Query(() => Users)
     user(@Arg("id") id: Number) {
-        return User.findOne({
+        return Users.findOne({
             where: { id }
         });
     }
 
     //create a snippet
-    @Mutation(() => User)
+    @Mutation(() => Users)
     async createUser(@Arg("data") data: CreateUserInput) {
         data.password = bcrypt.hashSync(data.password, 10);
-        const snippet = User.create(data);
+        const snippet = Users.create(data);
         await snippet.save();
         return snippet;
     }

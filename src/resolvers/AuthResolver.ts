@@ -1,16 +1,16 @@
 import bcrypt from 'bcrypt';
-import { User } from '../entity/User';
+import { Users } from '../entity/User';
 import { Resolver, Mutation, Arg, InputType, Field } from "type-graphql";
 import { sign } from "jsonwebtoken";
 
-@InputType()
-class LoginInput {
-    @Field()
-    email: string;
+// @InputType()
+// class LoginInput {
+//     @Field()
+//     email: string;
 
-    @Field()
-    password: string;
-}
+//     @Field()
+//     password: string;
+// }
 
 @InputType()
 class RegisterInput {
@@ -26,17 +26,17 @@ class RegisterInput {
 
 @Resolver()
 export class AuthResolver {
-    @Mutation(() => User || {})
-    async login(@Arg("data") data: LoginInput) {
-        const user = await User.findOne({
+    @Mutation(() => Users, { nullable: true })
+    async login(@Arg("email") email: string, @Arg("password") password: string) {
+        const user = await Users.findOne({
             where: {
-                email: data.email
+                email: email
             }
-        }) as User || null;
+        }) as Users || null;
         if(!user) {
             return null;
         }
-        const valid = await bcrypt.compare(data.password, user?.password);
+        const valid = await bcrypt.compare(password, user?.password);
         if(!valid) {
             return null;
         }
@@ -50,11 +50,11 @@ export class AuthResolver {
         return user;
     }
 
-    @Mutation(() => User || null)
+    @Mutation(() => Users || null)
     async register(@Arg("data") data: RegisterInput) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
         data.password = hashedPassword;
-        const newUser = await User.create(data);
+        const newUser = await Users.create(data);
         await newUser.save();
         const accessToken = sign({
             userId: newUser.id
