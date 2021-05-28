@@ -1,22 +1,7 @@
 import { Snippet } from '../entity/Snippet';
 import { Resolver, Query, Mutation, Arg, InputType, Field } from "type-graphql";
 import { Users } from '../entity/User';
-
-@InputType()
-class CreateSnippetInput {
-    @Field()
-    title: string;
-
-    @Field()
-    description: string;
-
-    @Field()
-    snippet: string;
-
-    @Field()
-    userId: number;
-}
-
+import { ID } from "type-graphql";
 @InputType()
 class UpdateSnippetInput {
     @Field()
@@ -39,25 +24,33 @@ export class SnippetResolver {
         })
     }
 
-    @Query(() => [Snippet])
+    @Query(() => ([Snippet]), { nullable: true })
     async snippetsByKeyword(@Arg("keyword") keyword: string) {
         let snippets = await Snippet.find({
             relations: ["user", "comments"]
         });
         let output = []
+        if(keyword.length === 0) {
+            return null;
+        }
         //do a search
         for (let snippet of snippets) {
             console.log(snippet)
-            if(snippet.title.includes(keyword) || snippet.description.includes(keyword) || snippet.description.includes(keyword)) {
+            if (    
+                snippet.title.toLowerCase().includes(keyword.toLowerCase()) 
+                || snippet.description.toLowerCase().includes(keyword.toLowerCase()) 
+                || snippet.snippet.toLowerCase().includes(keyword.toLowerCase())
+            ) {
                 output.push(snippet);
             }
         }
+        console.log(output);
         return output;
     }
 
     //get snippets for a particular user
     @Query(() => [Snippet])
-    snippetsForUser(@Arg("userId") userId: Number) {
+    snippetsForUser(@Arg("userId", () => ID) userId: string) {
         console.log(userId);
         return Snippet.find({
             where: {
@@ -78,38 +71,24 @@ export class SnippetResolver {
 
     //create a snippet
     @Mutation(() => Snippet, {nullable: true})
-    async createSnippet(@Arg("data") data: CreateSnippetInput) {
-        // const snippet = Snippet.create(data);
-        // let relatedUser = await Users.findOne({
-        //     where: {
-        //         id: data['userId']
-        //     }
-        // });
-        // if(!relatedUser) {
-        //     return null;
-        // } else {
-        //     await snippet.save();
-        //     relatedUser.snippets.push(snippet);
-        //     await relatedUser.save();
-        // }
-        // return snippet;
-        const snippet = new Snippet();
-        snippet.title = data.title;
-        snippet.description = data.description;
-        snippet.snippet = data.snippet;
-        // await snippet.save();
+    async createSnippet(@Arg("title") title: string, @Arg("description") description: string, @Arg("snippet") snippet: string, @Arg("userId", () => ID) userId: string) {
+        const newSnippet = new Snippet();
+        newSnippet.title = title;
+        newSnippet.description = description;
+        newSnippet.snippet = snippet;
+        newSnippet.comments = [];
         let relatedUser = await Users.findOne({
             where: {
-                id: data.userId
+                id: userId
             }
         })
         if(!relatedUser) {
             throw Error('Foreign Key Violation');
         } else {
-            snippet.user = relatedUser;
+            newSnippet.user = relatedUser;
         }
-        await snippet.save();
-        return snippet;
+        await newSnippet.save();
+        return newSnippet;    
     }
 
     //update snippet
