@@ -34,6 +34,8 @@ export class SnippetResolver {
             return null;
         }
         //do a search
+        console.log('Post search');
+        console.log(snippets);
         for (let snippet of snippets) {
             console.log(snippet)
             if (    
@@ -52,6 +54,7 @@ export class SnippetResolver {
     @Query(() => [Snippet])
     snippetsForUser(@Arg("userId", () => ID) userId: string) {
         console.log(userId);
+        console.log('Getting all');
         return Snippet.find({
             where: {
                 userId: userId
@@ -103,9 +106,10 @@ export class SnippetResolver {
 
     //delete snippet
     @Mutation(() => Boolean)
-    async deleteSnippet(@Arg("id") id: Number) {
+    async deleteSnippet(@Arg("id", () => ID) id: Number) {
+        console.log('Id to delete ' + id);
         const snippet = await Snippet.findOne({ where: { id } });
-        if(!snippet) throw new Error("Book not found!")
+        if(!snippet) return false;
         await snippet.remove();
         return true;
     }
